@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - ကဗျာ စီမံရန်</title>
+    <style>
+        body {
+            font-family: 'Pyidaungsu', Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f7f6;
+            color: #333;
+            padding-bottom: 50px;
+        }
+        
+        /* Menu Bar ဒီဇိုင်း */
+        header {
+            background-color: #1a73e8;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .nav-menu {
+            display: flex;
+            justify-content: space-around;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+        .nav-menu li {
+            flex: 1;
+            text-align: center;
+        }
+        .nav-menu a {
+            display: block;
+            padding: 15px 5px;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .nav-menu a:hover, .nav-menu a.active {
+            background-color: #1557b0;
+            border-bottom: 4px solid #fbbc05;
+        }
+
+        .page {
+            display: none;
+            padding: 15px;
+            max-width: 600px;
+            margin: auto;
+        }
+        .page.active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            margin-bottom: 15px;
+            border-top: 4px solid #1a73e8;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+            color: #444;
+            margin-top: 15px;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-family: 'Pyidaungsu', Arial, sans-serif;
+            font-size: 14px;
+        }
+        textarea { height: 130px; resize: vertical; }
+        
+        .btn {
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 15px;
+            margin-top: 10px;
+            transition: 0.2s;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-add { background: #e2e8f0; color: #1a73e8; width: 100%; padding: 12px;}
+        .btn-cancel { background: #ea4335; color: white; width: 100%; display: none;}
+        .btn-edit { background: #fbbc05; color: #333; padding: 8px 12px; font-size: 13px; margin-right: 5px;}
+        .btn-delete { background: #ea4335; color: white; padding: 8px 12px; font-size: 13px;}
+        .btn-upload { background: #1a73e8; color: white; width: 100%; padding: 16px; font-size: 16px; margin-top: 15px;}
+
+        .book-item {
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 5px solid #1a73e8;
+        }
+        .book-item h3 { margin: 0 0 10px 0; color: #1a73e8; font-size: 18px;}
+        .book-item p { margin: 0 0 15px 0; color: #666; font-size: 14px; white-space: pre-wrap;}
+    </style>
+</head>
+<body>
+
+    <!-- Menu Bar -->
+    <header>
+        <ul class="nav-menu">
+            <li><a id="tab-add" class="active" onclick="switchTab('add')">၁။ ကဗျာတင်ရန်</a></li>
+            <li><a id="tab-list" onclick="switchTab('list')">၂။ တင်ပြီးသားများ</a></li>
+        </ul>
+    </header>
+
+    <!-- Menu 1: ကဗျာတင်ရန် (Add / Version / Upload) -->
+    <div id="page-add" class="page active">
+        
+        <!-- ဗားရှင်းနေရာ -->
+        <div class="card" style="border-top-color: #34a853; padding-top: 10px;">
+            <label style="color: #0f9d58; font-size: 16px;">⚙️ ဗားရှင်းနေရာ (Version)</label>
+            <input type="text" id="version-input" value="1.1" placeholder="ဥပမာ - 1.2">
+        </div>
+
+        <!-- ကဗျာ အသစ်ထည့်ရန် နေရာ -->
+        <div class="card" style="border-top-color: #fbbc05; background: #fffdf5;">
+            <h3 id="form-title" style="margin-top:0; color: #b47000;">📝 ကဗျာခေါင်းစဉ် နှင့် စာသား</h3>
+            <input type="hidden" id="edit-index" value="-1">
+            
+            <label>📌 ကဗျာခေါင်းစဉ်</label>
+            <input type="text" id="book-title" placeholder="ခေါင်းစဉ် ရိုက်ထည့်ပါ">
+            
+            <label>📌 စာသား (Enter ခေါက်၍ ရေးနိုင်သည်)</label>
+            <textarea id="book-content" placeholder="စာသားများ ရိုက်ထည့်ပါ..."></textarea>
+            
+            <!-- သီးသန့်သိမ်းချင်သူများအတွက် ခလုတ် -->
+            <button id="save-btn" class="btn btn-add" onclick="saveBook(false)">+ စာရင်းထဲသို့သာ အရင်သိမ်းမည်</button>
+            <button id="cancel-btn" class="btn btn-cancel" onclick="cancelEdit()">မပြင်တော့ပါ (Cancel)</button>
+        </div>
+
+        <!-- တိုက်ရိုက်တင်မည့် နေရာ -->
+        <div class="card" style="border-top-color: #1a73e8;">
+            <label style="margin-top: 0;">🔑 GitHub Token</label>
+            <input type="text" id="github-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxx">
+            <p style="font-size: 12px; color: #ea4335; margin-top: 5px;">* (တစ်ခါထည့်ထားရုံဖြင့် မှတ်ထားပေးပါမည်)</p>
+
+            <button id="upload-btn" class="btn btn-upload" onclick="uploadToGitHub()">🚀 GitHub သို့ အခုပဲ တင်မည်</button>
+        </div>
+    </div>
+
+    <!-- Menu 2: တင်ပြီးသားများ -->
+    <div id="page-list" class="page">
+        <div class="card" style="border-top-color: #1a73e8;">
+            <h3 style="margin-top:0;">📚 တင်ပြီးထားသော ကဗျာများ</h3>
+            <div id="books-list-container">
+                <p style='text-align:center; color:#1a73e8; font-weight:bold;'>GitHub မှ ကဗျာများ အလိုအလျောက် ဆွဲယူနေပါသည်... ⏳</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // GitHub လင့်ခ်များ
+        const RAW_URL = "https://raw.githubusercontent.com/Ksovip/books-/refs/heads/main/books/book1.json";
+        const API_URL = "https://api.github.com/repos/Ksovip/books-/contents/books/book1.json";
+        
+        let booksArray = [];
+
+        // App စဖွင့်ချိန် ချက်ချင်းလုပ်ဆောင်မည့်အရာများ
+        document.addEventListener("DOMContentLoaded", () => {
+            // Token အဟောင်းရှိလျှင် ပြန်ဖော်ပြမည်
+            const savedToken = localStorage.getItem("saved_github_token");
+            if (savedToken) {
+                document.getElementById("github-token").value = savedToken;
+            }
+            // ခလုတ်နှိပ်စရာမလိုဘဲ GitHub မှ Data ကို အလိုအလျောက် တိုက်ရိုက်ဆွဲယူမည်
+            autoFetchFromGitHub();
+        });
+
+        // Tab ပြောင်းရန်
+        function switchTab(tabName) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.querySelectorAll('.nav-menu a').forEach(a => a.classList.remove('active'));
+            
+            document.getElementById('page-' + tabName).classList.add('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
+
+        // GitHub မှ အလိုအလျောက် ဆွဲယူခြင်း (Auto Fetch)
+        async function autoFetchFromGitHub() {
+            try {
+                const res = await fetch(RAW_URL);
+                if (!res.ok) throw new Error("Error");
+                const data = await res.json();
+                
+                let currentVersion = data.version || "1.0";
+                // ဗားရှင်းကို အလိုအလျောက် 0.1 တိုးပေးမည် (ဥပမာ 1.5 ဆိုလျှင် 1.6 ဖြစ်သွားမည်)
+                let newVer = (parseFloat(currentVersion) + 0.1).toFixed(1);
+                document.getElementById("version-input").value = newVer;
+                
+                booksArray = data.books || [];
+                renderBooks(); // ဆွဲယူပြီးသည်နှင့် စာရင်းကို အလိုလိုပြပေးမည်
+            } catch (err) {
+                const container = document.getElementById("books-list-container");
+                container.innerHTML = "<p style='text-align:center; color:#ea4335;'>အင်တာနက်မရှိပါ သို့မဟုတ် ဖိုင်ရှာမတွေ့ပါ။</p>";
+            }
+        }
+
+        // စာအုပ်များ ပြသခြင်း (Menu 2)
+        function renderBooks() {
+            const container = document.getElementById("books-list-container");
+            container.innerHTML = "";
+            if (booksArray.length === 0) {
+                container.innerHTML = "<p style='text-align:center; color:#888;'>စာအုပ်များ မရှိသေးပါ။</p>";
+                return;
+            }
+            booksArray.forEach((book, index) => {
+                let previewText = book.content.length > 50 ? book.content.substring(0, 50) + "..." : book.content;
+                const itemDiv = document.createElement("div");
+                itemDiv.className = "book-item";
+                itemDiv.innerHTML = `
+                    <h3>${book.title}</h3>
+                    <p>${previewText}</p>
+                    <button class="btn btn-edit" onclick="editBook(${index})">✏️ ပြင်မည်</button>
+                    <button class="btn btn-delete" onclick="deleteBook(${index})">🗑️ ဖျက်မည်</button>
+                `;
+                container.appendChild(itemDiv);
+            });
+        }
+
+        // စာအုပ်အသစ် သိမ်းခြင်း
+        function saveBook(isSilent = false) {
+            const title = document.getElementById("book-title").value.trim();
+            const content = document.getElementById("book-content").value.trim();
+            const index = parseInt(document.getElementById("edit-index").value);
+
+            if (!title || !content) {
+                if (!isSilent) alert("ခေါင်းစဉ်နှင့် စာသား အပြည့်အစုံ ထည့်ပါ။");
+                return false;
+            }
+
+            const newBook = { title: title, content: content };
+            if (index === -1) {
+                booksArray.push(newBook);
+            } else {
+                booksArray[index] = newBook;
+            }
+
+            cancelEdit();
+            renderBooks(); // စာရင်းကို ချက်ချင်း Update လုပ်မည်
+            if (!isSilent) switchTab('list'); // နှိပ်ပြီးလျှင် Menu 2 သို့သွားမည်
+            return true;
+        }
+
+        function editBook(index) {
+            document.getElementById("form-title").innerText = "✏️ ကဗျာ ပြုပြင်ရန်";
+            document.getElementById("edit-index").value = index;
+            document.getElementById("book-title").value = booksArray[index].title;
+            document.getElementById("book-content").value = booksArray[index].content;
+            
+            document.getElementById("save-btn").innerText = "💾 ပြုပြင်ထားသည်ကို သိမ်းမည်";
+            document.getElementById("save-btn").style.background = "#fbbc05";
+            document.getElementById("save-btn").style.color = "#333";
+            document.getElementById("cancel-btn").style.display = "block";
+            
+            switchTab('add'); // ပြင်မည်နှိပ်ပါက Menu 1 ဆီ ပြန်ပို့မည်
+            window.scrollTo(0, 0);
+        }
+
+        function cancelEdit() {
+            document.getElementById("form-title").innerText = "📝 ကဗျာခေါင်းစဉ် နှင့် စာသား";
+            document.getElementById("edit-index").value = "-1";
+            document.getElementById("book-title").value = "";
+            document.getElementById("book-content").value = "";
+            
+            document.getElementById("save-btn").innerText = "+ စာရင်းထဲသို့သာ အရင်သိမ်းမည်";
+            document.getElementById("save-btn").style.background = "#e2e8f0";
+            document.getElementById("save-btn").style.color = "#1a73e8";
+            document.getElementById("cancel-btn").style.display = "none";
+        }
+
+        function deleteBook(index) {
+            if (confirm("ဤကဗျာကို ဖျက်ပစ်ရန် သေချာပါသလား?")) {
+                booksArray.splice(index, 1);
+                renderBooks();
+            }
+        }
+
+        // GitHub သို့ တိုက်ရိုက် Upload လုပ်ခြင်း
+        async function uploadToGitHub() {
+            // ၁။ အကယ်၍ စာသားရိုက်ထားပြီး မသိမ်းရသေးလျှင် အလိုအလျောက် အရင်သိမ်းပေးမည်
+            const title = document.getElementById("book-title").value.trim();
+            const content = document.getElementById("book-content").value.trim();
+            if (title !== "" && content !== "") {
+                saveBook(true); // အသံတိတ် သိမ်းမည်
+            }
+
+            const token = document.getElementById("github-token").value.trim();
+            const version = document.getElementById("version-input").value.trim();
+            
+            if (!token) return alert("GitHub Token ထည့်ပေးရန် လိုအပ်ပါသည်။");
+            if (booksArray.length === 0) return alert("တင်စရာ ကဗျာ/စာအုပ် မရှိသေးပါ။");
+
+            // Token ကို မှတ်ထားပေးမည်
+            localStorage.setItem("saved_github_token", token);
+
+            const btn = document.getElementById('upload-btn');
+            btn.innerText = "တင်နေပါသည်... ခဏစောင့်ပါ";
+            btn.style.background = "#fbbc05";
+            btn.style.color = "#333";
+
+            // Data ပြောင်းခြင်း
+            const finalData = { version: version, books: booksArray };
+            const jsonString = JSON.stringify(finalData, null, 2);
+            const base64Content = window.btoa(unescape(encodeURIComponent(jsonString)));
+
+            try {
+                let currentSha = "";
+                const getRes = await fetch(API_URL);
+                if (getRes.ok) {
+                    const getData = await getRes.json();
+                    currentSha = getData.sha;
+                }
+
+                const putRes = await fetch(API_URL, {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        message: `Admin App မှ စာအုပ်ဗားရှင်း ${version} တင်ခြင်း`,
+                        content: base64Content,
+                        sha: currentSha
+                    })
+                });
+
+                if (putRes.ok) {
+                    alert("✅ အောင်မြင်စွာ တိုက်ရိုက်တင်ပြီးပါပြီ!");
+                    btn.innerText = "🚀 GitHub သို့ အခုပဲ တင်မည်";
+                    btn.style.background = "#1a73e8";
+                    btn.style.color = "white";
+                } else {
+                    alert("❌ အမှားအယွင်းဖြစ်နေပါသည်။ Token မှားနေခြင်း ဖြစ်နိုင်ပါသည်။");
+                    btn.innerText = "🚀 GitHub သို့ အခုပဲ တင်မည်";
+                    btn.style.background = "#1a73e8";
+                    btn.style.color = "white";
+                }
+
+            } catch (err) {
+                alert("အင်တာနက်ချိတ်ဆက်မှု မကောင်းပါ။ ပြန်စမ်းကြည့်ပါ။");
+                btn.innerText = "🚀 GitHub သို့ အခုပဲ တင်မည်";
+                btn.style.background = "#1a73e8";
+                btn.style.color = "white";
+            }
+        }
+    </script>
+</body>
+</html>
